@@ -43,10 +43,10 @@ jobs:
       - name: build image
         run: docker build --pull --no-cache -t shopflow-product:distroless .
 
-      - name: Inspect Python packages in CI image
-        run: |
-          docker run --rm shopflow-product:distroless python -m pip list
-          docker run --rm shopflow-product:distroless python -m pip freeze
+#     - name: Inspect Python packages in CI image
+#       run: |
+#         docker run --rm shopflow-product:distroless python -m pip list
+#          docker run --rm shopflow-product:distroless python -m pip freeze
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
