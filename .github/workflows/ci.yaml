@@ -41,7 +41,7 @@ jobs:
         run: python -m pytest -v 
 
       - name: build image
-        run: docker build -t shopflow-product:ci .
+        run: docker build --pull --no-cache -t shopflow-product:distroless .
 
       - name: Inspect Python packages in CI image
         run: |
@@ -51,7 +51,7 @@ jobs:
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: shopflow-product:ci
+          image-ref: shopflow-product:distroless
           format: json
           output: trivy-report.json
           vuln-type: os,library
