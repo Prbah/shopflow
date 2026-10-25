@@ -78,6 +78,6 @@ jobs:
           REPOSITORY: shopflow-product
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker tag shopflow-product:ci "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker tag shopflow-product:distroless "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
 
