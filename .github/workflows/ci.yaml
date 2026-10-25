@@ -18,6 +18,9 @@ jobs:
       - name: checkout-code
         uses: actions/checkout@v5
 
+      - name: scan for leaked secrets
+        uses: gitleaks/gitleaks-action@v2
+
       - name: setup-python
         uses: actions/setup-python@v5
         with:
