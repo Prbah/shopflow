@@ -44,7 +44,7 @@ jobs:
         run: docker build -t shopflow-product:ci .
 
       - name: Trivy scan for image vulnerability 
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: shopflow-product:ci
           format: table
