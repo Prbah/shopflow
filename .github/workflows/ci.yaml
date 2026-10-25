@@ -43,6 +43,11 @@ jobs:
       - name: build image
         run: docker build -t shopflow-product:ci .
 
+      - name: Inspect Python packages in CI image
+        run: |
+          docker run --rm shopflow-product:ci python -m pip list
+          docker run --rm shopflow-product:ci python -m pip freeze
+
       - name: Trivy scan for image vulnerability 
         uses: aquasecurity/trivy-action@0.35.0
         with:
