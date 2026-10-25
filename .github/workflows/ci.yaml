@@ -25,13 +25,14 @@ jobs:
 
       - name: install dependencies 
         run: pip install -r requirements.txt
-
+     
       - name: Configure AWS credentials
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::390663897243:role/Github-OIDC
           aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: ShopFlowGitHubActions
 
       - name: Run tests
         run: python -m pytest -v 
