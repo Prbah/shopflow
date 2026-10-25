@@ -1,27 +1,23 @@
-FROM python:3.13-slim
+# Stage 1: Build dependencies
+FROM python:3.13-slim-trixie AS builder
 
 WORKDIR /app
 
-# Update OS packages available from the configured Debian repositories
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 
-RUN python -m pip install --no-cache-dir -r requirements.txt \
-    && python -m pip install --no-cache-dir --upgrade \
-       "msgpack>=1.2.1" \
-       "setuptools>=78.1.1" \
-       "urllib3>=2.8.0" \
-    && python -m pip check      
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-RUN useradd --create-home appuser
 
-COPY --chown=appuser:appuser services/product-service/main.py /app
+# Stage 2: Distroless runtime
+FROM gcr.io/distroless/python3-debian13:nonroot
 
-USER appuser
+WORKDIR /app
+
+COPY --from=builder /install/lib/python3.13/site-packages /usr/lib/python3.13/site-packages
+COPY --chown=65532:65532 services/product-service/main.py /app/main.py
+
+ENV PYTHONPATH=/usr/lib/python3.13/site-packages
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
