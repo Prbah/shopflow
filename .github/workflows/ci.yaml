@@ -41,7 +41,7 @@ jobs:
         run: python -m pytest -v 
 
       - name: build image
-        run: docker build --pull --no-cache -t shopflow-product:distroless .
+        run: docker build --pull --no-cache -t shopflow-product:chainguard .
 
 #     - name: Inspect Python packages in CI image
 #       run: |
@@ -51,7 +51,7 @@ jobs:
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: shopflow-product:distroless
+          image-ref: shopflow-product:chainguard
           format: json
           output: trivy-report.json
           vuln-type: os,library
@@ -78,6 +78,6 @@ jobs:
           REPOSITORY: shopflow-product
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker tag shopflow-product:distroless "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker tag shopflow-product:chainguard "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
 
