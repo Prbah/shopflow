@@ -1,22 +1,22 @@
 # Stage 1: Build dependencies
-FROM python:3.13-slim-trixie AS builder
+FROM python:3.15-slim-trixie AS builder
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN python -m pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
-# Stage 2: Distroless runtime
-FROM gcr.io/distroless/python3-debian13:nonroot
+# Stage 2: Runtime
+FROM cgr.dev/chainguard/python:latest
 
 WORKDIR /app
 
-COPY --from=builder /install/lib/python3.13/site-packages /usr/lib/python3.13/site-packages
-COPY --chown=65532:65532 services/product-service/main.py /app/main.py
+COPY --from=builder /install /install
+COPY services/product-service/main.py /app/main.py
 
-ENV PYTHONPATH=/usr/lib/python3.13/site-packages
+ENV PYTHONPATH=/install/lib/python3.15/site-packages
 
 EXPOSE 8000
 
