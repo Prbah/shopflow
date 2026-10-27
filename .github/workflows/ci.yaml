@@ -49,6 +49,11 @@ jobs:
 #       run: |
 #         docker run --rm shopflow-product:distroless python -m pip list
 #          docker run --rm shopflow-product:distroless python -m pip freeze
+      - name: Verify image base
+        run: |
+          docker image inspect shopflow-product:chainguard \
+            --format 'Image ID: {{.Id}}'
+          docker history --no-trunc shopflow-product:chainguard
 
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
