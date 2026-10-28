@@ -3,14 +3,10 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-SERVICE_DIR = (
-    Path(__file__).resolve().parents[1]
-    / "services"
-    / "product-service"
-)
+SERVICE_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SERVICE_DIR))
 
-from main import app  # noqa: E402
+from app.main import app  # noqa: E402
 
 client = TestClient(app)
 
