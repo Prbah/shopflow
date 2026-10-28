@@ -41,7 +41,7 @@ jobs:
         run: python -m pytest -v 
 
       - name: build image
-        run: docker build --pull --no-cache -t shopflow-product:chainguard .
+        run: docker build --pull --no-cache -f services/product-service/Dockerfile -t shopflow-product:chainguard .
 
 #     - name: Inspect Python packages in CI image
 #       run: |
