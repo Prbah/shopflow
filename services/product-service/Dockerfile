@@ -3,7 +3,7 @@ FROM python:3.15-slim-trixie AS builder
 
 WORKDIR /install
 
-COPY services/product-service/requirements.txt requirements.txt
+COPY requirements.txt requirements.txt
 
 RUN python -m pip install --no-cache-dir --prefix=/install -r requirements.txt
 
@@ -14,7 +14,7 @@ FROM cgr.dev/chainguard/python:latest
 WORKDIR /app
 
 COPY --from=builder /install /install
-COPY services/product-service/app/ /app/app/
+COPY app/ /app/app/
 
 ENV PYTHONPATH=/install/lib/python3.15/site-packages
 

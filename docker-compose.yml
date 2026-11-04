@@ -1,0 +1,83 @@
+services:
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    container_name: shopflow-product
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shopflow-network
+
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: shopflow-order
+    restart: unless-stopped
+    networks:
+      - shopflow-network
+
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: shopflow-payment
+    restart: unless-stopped
+    networks:
+      - shopflow-network
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: shopflow-notification
+    restart: unless-stopped
+    networks:
+      - shopflow-network
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - product-service
+      - order-service
+      - payment-service
+      - notification-service
+    restart: unless-stopped
+    networks:
+      - shopflow-network
+
+  postgres:
+    image: postgres:17
+    container_name: shopflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - shopflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopflow -d shopflow_products"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopflow-network
+
+volumes:
+  shopflow-postgres-data:
+    driver: local
+
+networks:
+  shopflow-network:
+    driver: bridge

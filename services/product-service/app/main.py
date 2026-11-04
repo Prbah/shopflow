@@ -1,33 +1,33 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from app.database import Base, engine, SessionLocal
+from app import models
+
+from pydantic import ConfigDict
 
 app = FastAPI(title="ShopFlow Product Service", version="1.0.0")
 
+Base.metadata.create_all(bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 class ProductCreate(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     price: float = Field(gt=0)
     description: str = Field(default="", max_length=500)
 
-
 class Product(ProductCreate):
     id: int
 
-
-products: dict[int, Product] = {
-    1: Product(
-        id=1,
-        name="Mechanical Keyboard",
-        price=2499.0,
-        description="Wired mechanical keyboard",
-    ),
-    2: Product(
-        id=2,
-        name="Wireless Mouse",
-        price=999.0,
-        description="Wireless mouse",
-    ),
-}
+    model_config = ConfigDict(from_attributes=True)
 
 
 @app.get("/health")
@@ -36,39 +36,64 @@ def health_check():
 
 
 @app.get("/products", response_model=list[Product])
-def list_products():
-    return list(products.values())
-
+def list_products(db: Session = Depends(get_db)):
+    return db.query(models.Product).all()
 
 @app.get("/products/{product_id}", response_model=Product)
-def get_product(product_id: int):
-    product = products.get(product_id)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
+
     return product
 
-
 @app.post("/products", response_model=Product, status_code=201)
-def create_product(payload: ProductCreate):
-    new_id = max(products.keys(), default=0) + 1
-    product = Product(id=new_id, **payload.model_dump())
-    products[new_id] = product
+def create_product(payload: ProductCreate, db: Session = Depends(get_db)):
+    product = models.Product(**payload.model_dump())
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
     return product
 
 
 @app.put("/products/{product_id}", response_model=Product)
-def update_product(product_id: int, payload: ProductCreate):
-    if product_id not in products:
+def update_product(
+    product_id: int,
+    payload: ProductCreate,
+    db: Session = Depends(get_db)
+):
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+
+    if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    product = Product(id=product_id, **payload.model_dump())
-    products[product_id] = product
+    for key, value in payload.model_dump().items():
+        setattr(product, key, value)
+
+    db.commit()
+    db.refresh(product)
+
     return product
 
 
+
 @app.delete("/products/{product_id}", status_code=204)
-def delete_product(product_id: int):
-    if product_id not in products:
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(
+        models.Product.id == product_id
+    ).first()
+
+    if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    del products[product_id]
+
+    db.delete(product)
+    db.commit()
+
     return None
