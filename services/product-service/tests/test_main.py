@@ -1,4 +1,5 @@
 import sys
+import pytest
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -10,6 +11,19 @@ from app.main import app  # noqa: E402
 
 client = TestClient(app)
 
+@pytest.fixture
+def sample_product():
+    response = client.post(
+        "/products",
+        json={
+            "name": "Mechanical Keyboard",
+            "price": 2499,
+            "description": "Mechanical keyboard",
+        },
+    )
+
+    assert response.status_code == 201
+    return response.json()
 
 def test_health_endpoint():
     response = client.get("/health")
@@ -21,15 +35,18 @@ def test_health_endpoint():
     }
 
 
-def test_list_products():
+def test_list_products(sample_product):
     response = client.get("/products")
 
     assert response.status_code == 200
-    assert len(response.json()) >= 2
+    assert any(
+        product["id"] == sample_product["id"]
+        for product in response.json()
+    )
 
 
-def test_get_existing_product():
-    response = client.get("/products/1")
+def test_get_existing_product(sample_product):
+    response = client.get(f"/products/{sample_product['id']}")
 
     assert response.status_code == 200
     assert response.json()["name"] == "Mechanical Keyboard"
@@ -64,10 +81,9 @@ def test_reject_invalid_price():
 
     assert response.status_code == 422
 
-
-def test_update_product():
+def test_update_product(sample_product):
     response = client.put(
-        "/products/1",
+        f"/products/{sample_product['id']}",
         json={
             "name": "Updated Keyboard",
             "price": 2699,
@@ -77,6 +93,7 @@ def test_update_product():
 
     assert response.status_code == 200
     assert response.json()["name"] == "Updated Keyboard"
+
 
 
 def test_delete_product():
