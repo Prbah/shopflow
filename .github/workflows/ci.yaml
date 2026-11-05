@@ -107,6 +107,7 @@ jobs:
             -f services/${{ matrix.service }}/Dockerfile \
             -t shopflow-${{ matrix.service }}:${{ github.sha }} \
             services/${{ matrix.service }}
+            
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -127,13 +128,10 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           role-session-name: ShopFlowGitHubActions
 
-
       - name: Login to Amazon ECR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-
 
       - name: Push image to Amazon ECR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
