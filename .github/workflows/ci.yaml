@@ -33,6 +33,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: shopflow_products
+          POSTGRES_USER: shopflow
+          POSTGRES_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shopflow -d shopflow_products"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://shopflow:${{ secrets.CI_DB_PASSWORD }}@localhost:5432/shopflow_products
+
+
+
     strategy:
       fail-fast: false
       matrix:
