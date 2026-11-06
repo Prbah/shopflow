@@ -4,9 +4,9 @@
 # -----------------------------------------
 
 resource "aws_eks_cluster" "this" {
-  name     = "${var.project_name}-${var.environment}-eks"
-  role_arn = var.eks_cluster_role_arn
-  version  = var.kubernetes_version
+  name                          = "${var.project_name}-${var.environment}-eks"
+  role_arn                      = var.eks_cluster_role_arn
+  version                       = var.kubernetes_version
   bootstrap_self_managed_addons = false
 
   vpc_config {
@@ -64,7 +64,7 @@ resource "aws_eks_addon" "vpc_cni" {
   addon_name   = "vpc-cni"
 
   depends_on = [
-    aws_eks_node_group.this
+    aws_eks_cluster.this
   ]
 }
 
@@ -73,7 +73,9 @@ resource "aws_eks_addon" "coredns" {
   addon_name   = "coredns"
 
   depends_on = [
-    aws_eks_node_group.this
+    aws_eks_cluster.this,
+    aws_eks_addon.vpc_cni,
+    aws_eks_addon.kube_proxy
   ]
 }
 
